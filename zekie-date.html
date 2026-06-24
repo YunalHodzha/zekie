@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Sana Bir Sorum Var</title>
+<style>
+  :root{
+    --ink:#3a2438; --rose:#ff5d8f; --rose-deep:#e23e74;
+    --yes:#ff4f81; --yes-deep:#d62e63;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html,body{ height:100%; }
+  body{
+    font-family:"Trebuchet MS","Segoe UI",system-ui,sans-serif; color:var(--ink);
+    min-height:100dvh; overflow:hidden;
+    background:radial-gradient(120% 120% at 50% 0%, #ffe9e0 0%, #ffd9e4 38%, #ffc2dd 70%, #ffb3d6 100%);
+    display:flex; align-items:center; justify-content:center;
+    -webkit-tap-highlight-color:transparent; user-select:none;
+  }
+  .sky{ position:fixed; inset:0; overflow:hidden; pointer-events:none; z-index:0; }
+  .sky b{ position:absolute; bottom:-40px; opacity:.45; animation:rise linear infinite; }
+  @keyframes rise{ 0%{ transform:translateY(0) rotate(0); opacity:0; } 10%{ opacity:.5; }
+    90%{ opacity:.4; } 100%{ transform:translateY(-115dvh) rotate(40deg); opacity:0; } }
+
+  .stage{ position:relative; z-index:1; width:min(640px,93vw); text-align:center; padding:24px; }
+  .eyebrow{ font-size:clamp(.75rem,3.5vw,.95rem); letter-spacing:.3em; text-transform:uppercase;
+    color:var(--rose-deep); font-weight:bold; margin-bottom:16px; opacity:.85; }
+  .name-hero{ font-size:clamp(2.6rem,11vw,4.4rem); line-height:1; font-weight:800;
+    color:var(--rose-deep); margin-bottom:14px; text-shadow:0 2px 0 rgba(255,255,255,.5); }
+  .line{ font-size:clamp(1.05rem,4.6vw,1.4rem); color:#7a5468; font-weight:600;
+    line-height:1.4; margin-bottom:22px; max-width:26ch; margin-left:auto; margin-right:auto; }
+  .bigq{ font-size:clamp(1.4rem,6.2vw,2.3rem); font-weight:800; color:var(--ink); margin-bottom:12px; }
+  .sub{ font-size:clamp(.95rem,4vw,1.2rem); color:#9a7488; margin-bottom:38px; }
+
+  button{ font-family:inherit; font-weight:800; border:none; cursor:pointer; border-radius:999px;
+    transition:transform .12s ease, box-shadow .2s ease, background .2s ease; }
+  .buttons{ display:flex; gap:18px; align-items:center; justify-content:center; flex-wrap:wrap; }
+  .yes{ background:linear-gradient(180deg,var(--yes),var(--yes-deep)); color:#fff;
+    font-size:clamp(1.1rem,4.5vw,1.5rem); padding:18px 46px; box-shadow:0 12px 28px rgba(214,46,99,.4); }
+  .yes:hover{ transform:translateY(-2px) scale(1.03); } .yes:active{ transform:translateY(0) scale(.99); }
+  .no{ background:#fff; color:#9a7488; font-size:clamp(1rem,4vw,1.3rem); padding:16px 38px;
+    box-shadow:0 8px 18px rgba(120,80,100,.22); }
+  .no.loose{ position:fixed; z-index:50; margin:0; }
+
+  .panel{ position:fixed; inset:0; z-index:40; display:none; flex-direction:column;
+    align-items:center; justify-content:center; text-align:center; padding:26px;
+    background:radial-gradient(120% 120% at 50% 18%, #fff0f5 0%, #ffd9e9 60%, #ffbcdd 100%); overflow-y:auto; }
+  .panel.show{ display:flex; animation:fadein .45s ease; }
+  @keyframes fadein{ from{opacity:0; transform:translateY(8px)} to{opacity:1; transform:none} }
+
+  .bighearts{ font-size:clamp(2.6rem,14vw,5rem); margin-bottom:6px; animation:beat 1s ease infinite; }
+  @keyframes beat{ 0%,100%{transform:scale(1)} 50%{transform:scale(1.12)} }
+  .panel h1{ font-size:clamp(1.7rem,7.5vw,3rem); color:var(--rose-deep); margin-bottom:8px; }
+  .panel .step-sub{ font-size:clamp(1rem,4.2vw,1.2rem); color:#7a5468; margin-bottom:24px; max-width:34ch; }
+  .tease{ font-size:clamp(.95rem,4vw,1.1rem); color:var(--rose-deep); font-style:italic; margin-bottom:22px; max-width:32ch; }
+
+  .dots{ display:flex; gap:10px; margin-bottom:22px; }
+  .dots i{ width:11px; height:11px; border-radius:50%; background:#ffc2d8; transition:.3s; }
+  .dots i.active{ background:var(--rose-deep); transform:scale(1.25); }
+  .dots i.done{ background:var(--rose); }
+
+  .grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(135px,1fr));
+    gap:14px; width:min(560px,92vw); margin-bottom:8px; }
+  .opt{ background:#fff; border-radius:22px; padding:22px 14px; cursor:pointer;
+    box-shadow:0 8px 18px rgba(120,80,100,.16); display:flex; flex-direction:column;
+    align-items:center; gap:8px; transition:transform .14s ease, box-shadow .2s ease, background .2s;
+    border:3px solid transparent; }
+  .opt:hover{ transform:translateY(-3px); box-shadow:0 12px 24px rgba(120,80,100,.24); }
+  .opt:active{ transform:scale(.96); }
+  .opt.picked{ border-color:var(--rose-deep); background:#fff2f7; transform:scale(1.04); }
+  .opt .emo{ font-size:2.4rem; line-height:1; } .opt .lab{ font-weight:800; color:var(--ink); font-size:1.02rem; }
+
+  .toast{ position:fixed; left:50%; bottom:8%; transform:translateX(-50%) translateY(20px);
+    background:#fff; color:var(--ink); font-weight:700; font-size:clamp(.95rem,4vw,1.12rem);
+    padding:14px 22px; border-radius:18px; box-shadow:0 14px 34px rgba(180,60,110,.32);
+    max-width:88vw; opacity:0; pointer-events:none; z-index:70; transition:opacity .25s, transform .25s;
+    border:2px solid #ffd2e2; }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+  .card{ background:#fff; border-radius:26px; padding:28px 26px; width:min(440px,92vw);
+    box-shadow:0 18px 40px rgba(180,60,110,.3); text-align:left; position:relative; }
+  .card .title{ text-align:center; font-size:1.5rem; font-weight:800; color:var(--rose-deep); margin-bottom:4px; }
+  .card .for{ text-align:center; color:#9a7488; margin-bottom:20px; font-size:.95rem; }
+  .row{ display:flex; align-items:center; gap:14px; padding:13px 0; border-bottom:1px dashed #ffd2e2; }
+  .row:last-child{ border-bottom:none; }
+  .row .ic{ font-size:1.7rem; width:34px; text-align:center; }
+  .row .meta b{ display:block; font-size:.72rem; letter-spacing:.12em; text-transform:uppercase; color:#c98aa6; }
+  .row .meta span{ font-size:1.12rem; font-weight:800; color:var(--ink); }
+  .card .closing{ text-align:center; margin-top:18px; color:#7a5468; font-size:1.02rem; line-height:1.45; }
+  .stamp{ position:absolute; top:-14px; right:-10px; background:var(--rose-deep); color:#fff;
+    font-size:.66rem; font-weight:800; letter-spacing:.06em; padding:8px 12px; border-radius:12px;
+    transform:rotate(8deg); box-shadow:0 6px 14px rgba(214,46,99,.4); }
+
+  .tip{ margin-top:18px; color:#9a7488; font-size:.92rem; }
+  .restart{ margin-top:14px; background:none; color:var(--rose-deep); text-decoration:underline;
+    font-size:.95rem; padding:6px; box-shadow:none; }
+
+  .confetti{ position:fixed; top:-20px; z-index:60; pointer-events:none; animation:fall linear forwards; }
+  @keyframes fall{ 0%{ transform:translateY(0) rotate(0); } 100%{ transform:translateY(115dvh) rotate(560deg); } }
+  @media (prefers-reduced-motion:reduce){ .sky b{ display:none; } .bighearts{ animation:none; } }
+</style>
+</head>
+<body>
+
+  <div class="sky" id="sky"></div>
+
+  <main class="stage" id="stage">
+    <p class="eyebrow">bir teklifim var…</p>
+    <h1 class="name-hero" id="nameSlot">Zekieciğim</h1>
+    <p class="line">Canın, aşkın, biricik sevgilinden sana bir date teklifi 💌</p>
+    <p class="bigq">Benimle bir date'e çıkar mısın?</p>
+    <p class="sub">Acele etme. Doğru cevabı seç. 😉</p>
+    <div class="buttons">
+      <button class="yes" id="yesBtn">Evet 💕</button>
+      <button class="no" id="noBtn">Hayır</button>
+    </div>
+  </main>
+
+  <section class="panel" id="panel"><div id="panelInner"></div></section>
+  <div class="toast" id="toast"></div>
+
+<script>
+  /* ============================================================
+     ↓↓↓  BURAYI DEĞİŞTİR  ↓↓↓
+     ============================================================ */
+  const GF_NAME = "Zekieciğim";
+  /* ============================================================ */
+
+  document.getElementById('nameSlot').textContent = GF_NAME + "…";
+
+  const sky=document.getElementById('sky');
+  const heartChars=['💗','💖','💘','❤️','💕','🌸'];
+  for(let i=0;i<18;i++){ const h=document.createElement('b');
+    h.textContent=heartChars[Math.floor(Math.random()*heartChars.length)];
+    h.style.left=Math.random()*100+'vw'; h.style.fontSize=(16+Math.random()*26)+'px';
+    h.style.animationDuration=(7+Math.random()*8)+'s'; h.style.animationDelay=(-Math.random()*12)+'s';
+    sky.appendChild(h); }
+
+  /* ---- kaçan Hayır ---- */
+  const yesBtn=document.getElementById('yesBtn'), noBtn=document.getElementById('noBtn');
+  const taunts=["Hayır","Emin misin?","Gerçekten mi?","Bir daha düşün!","Son şans…",
+    "Yapma ama!","Biraz kalbin olsun ❤️","Yanlış tuş 😅","Beni yakalayamazsın",
+    "Hadi evet de 🙈","Ne olur?","Olmaz olmaz olmaz"];
+  let dodges=0, loose=false;
+  function runAway(){
+    if(!loose){ const r=noBtn.getBoundingClientRect(); noBtn.classList.add('loose');
+      noBtn.style.left=r.left+'px'; noBtn.style.top=r.top+'px'; loose=true; }
+    dodges++;
+    yesBtn.style.transform=`scale(${Math.min(1+dodges*0.12,2.4)})`;
+    noBtn.textContent=taunts[Math.min(dodges,taunts.length-1)];
+    const pad=12,w=noBtn.offsetWidth,h=noBtn.offsetHeight;
+    const x=pad+Math.random()*Math.max(pad,window.innerWidth-w-pad*2);
+    const y=pad+Math.random()*Math.max(pad,window.innerHeight-h-pad*2);
+    noBtn.style.left=x+'px'; noBtn.style.top=y+'px';
+    noBtn.style.transform=`scale(${Math.max(1-dodges*0.045,0.55)}) rotate(${Math.random()*30-15}deg)`;
+  }
+  ['pointerenter','pointerdown','mousedown','touchstart','focus','click'].forEach(ev=>
+    noBtn.addEventListener(ev,e=>{e.preventDefault();runAway();},{passive:false}));
+  noBtn.addEventListener('touchmove',e=>{e.preventDefault();runAway();},{passive:false});
+  window.addEventListener('resize',()=>{ if(loose) runAway(); });
+
+  /* ============================================================
+     PLANLAYICI
+     ============================================================ */
+  const panel=document.getElementById('panel'), inner=document.getElementById('panelInner');
+  const toast=document.getElementById('toast');
+
+  const steps=[
+    { key:'place', q:'Nereye gidelim?', sub:'Vibe\'ı seç — dikkat et, zevkin ortaya çıkıyor.',
+      opts:[
+        {emo:'🏠',lab:'Ev date\'i',ic:'🏠'},{emo:'🍽️',lab:'Restoran',ic:'🍽️'},
+        {emo:'🚶',lab:'Uzun bir yürüyüş',ic:'🚶'},{emo:'🎬',lab:'Sinema',ic:'🎬'},
+        {emo:'🚗',lab:'Yol gezisi',ic:'🚗'},{emo:'🎲',lab:'Sürpriz yap',ic:'🎁'},
+      ]},
+    { key:'food', q:'Peki ne yiyoruz?', sub:'Gecenin en önemli sorusu.',
+      opts:[
+        {emo:'🍣',lab:'Suşi',ic:'🍣'},{emo:'🍕',lab:'Pizza',ic:'🍕'},
+        {emo:'🍔',lab:'Burger',ic:'🍔'},{emo:'🍝',lab:'Makarna',ic:'🍝'},
+        {emo:'🔥',lab:'Mangal',ic:'🔥'},{emo:'🍰',lab:'Direkt tatlı',ic:'🍰'},
+        {emo:'😋',lab:'Sen seç',ic:'😋'},
+      ]},
+    { key:'time', q:'Ne zaman olsun?', sub:'Modu ayarla.',
+      opts:[
+        {emo:'☀️',lab:'Gündüz',ic:'☀️'},{emo:'🌅',lab:'Gün batımı',ic:'🌅'},
+        {emo:'🌙',lab:'Gece geç saat',ic:'🌙'},
+      ]},
+    { key:'reward', q:'Ya date iyi geçerse…?', sub:'Bir arkadaşım için soruyorum. 😏',
+      opts:[
+        {emo:'💋',lab:'İyi geceler öpücüğü',ic:'💋'},{emo:'🔁',lab:'İkinci bir date',ic:'🔁'},
+        {emo:'👩‍🍳',lab:'Bir dahakine sen yap',ic:'👩‍🍳'},{emo:'🙈',lab:'Bekleyeceksin',ic:'🙈'},
+      ]},
+  ];
+
+  const reactions={
+    'Ev date\'i':"Sadece ikimiz, etrafta kimse yok ha? Cesur. Onaylıyorum 😏",
+    'Restoran':"Şık. Senin için iyi gömleğimi bile giyerim 😌",
+    'Uzun bir yürüyüş':"Yürüyüş demek elini daha çok tutmak demek 🤭",
+    'Sinema':"Filmi pek izlemeyeceğimizi ikimiz de biliyoruz 😏",
+    'Yol gezisi':"Camlar açık, müzik sende… tehlikeli kombinasyon 🚗💨",
+    'Suşi':"Suşi mi? Pahalı zevk. İyi ki buna değiyorsun 🍣",
+    'Pizza':"Pizza seçen kız kaçırılmaz. Benimle evlen— neyse, erken mi oldu? 🍕💘",
+    'Burger':"Birlikte dağıtarak burger yemek… işte gerçek yakınlık bu 🍔",
+    'Makarna':"Lady ile Sokak Köpeği enerjisi 🍝 Son lokmayı sana bırakırım. Belki.",
+    'Mangal':"Mangalı ben yakarım, ne yaptığımı biliyormuş gibi yaparım 🔥",
+    'Direkt tatlı':"Direkt tatlıya mı? Baş belasısın ve bayıldım 🍰😏",
+    'Gündüz':"Gündüz olsun ki seni güzel ışıkta seyredeyim ☀️",
+    'Gün batımı':"Gün batımı — hem romantik hem fotojenik. İyi seçim 🌅",
+    'Gece geç saat':"Geç saat ha? Bak şu gizemli haline 🌙😏",
+    'İyi geceler öpücüğü':"Tek öpücükle yetineceğimi mi sandın? 😏",
+    'İkinci bir date':"Daha ilk date olmadan ikinciyi planlıyorsun. Bu özgüvene bayıldım 💕",
+    'Bir dahakine sen yap':"Anlaştık — ama tadına ben bakarım 😋",
+    'Bekleyeceksin':"Nazlanıyorsun ha? Bu oyunu iki kişi oynayabilir 😏",
+  };
+
+  const picks={};
+  let stepIndex=-1;
+
+  function showToast(msg){
+    toast.textContent=msg; toast.classList.add('show');
+    clearTimeout(showToast._t);
+    showToast._t=setTimeout(()=>toast.classList.remove('show'),3200);
+  }
+
+  function dotsHTML(active){
+    let s='<div class="dots">';
+    for(let i=0;i<steps.length;i++){ s+=`<i class="${i<active?'done':(i===active?'active':'')}"></i>`; }
+    return s+'</div>';
+  }
+
+  function showCelebration(){
+    let tease;
+    if(dodges===0) tease="Hiç düşünmeden Evet'e gittin. Beni sevdiğini biliyordum 😏";
+    else if(dodges<4) tease=`Evet'i yakalaman tam ${dodges} deneme aldı. Tatlı şey.`;
+    else tease=`Evet'i yakalamak ${dodges} deneme mi?! Ama her saniyesine değdi 😍`;
+    inner.innerHTML=`
+      <div class="bighearts">💖🥰💖</div>
+      <h1>Eveeet! Çıkıyoruz!</h1>
+      <p class="tease">${tease}</p>
+      <p class="step-sub">Şimdi planlamama yardım et — birkaç dokunuş yeter 💕</p>
+      <button class="yes" id="planBtn">Hadi planlayalım ✨</button>`;
+    document.getElementById('planBtn').addEventListener('click',()=>{ stepIndex=0; renderStep(); });
+  }
+
+  function renderStep(){
+    const st=steps[stepIndex];
+    let html=dotsHTML(stepIndex)+`<h1>${st.q}</h1><p class="step-sub">${st.sub}</p><div class="grid">`;
+    st.opts.forEach((o,i)=>{ html+=`<div class="opt" data-i="${i}"><span class="emo">${o.emo}</span><span class="lab">${o.lab}</span></div>`; });
+    html+='</div>';
+    inner.innerHTML=html;
+    inner.querySelectorAll('.opt').forEach(el=>{
+      el.addEventListener('click',()=>{
+        let choice=st.opts[+el.dataset.i];
+        if(choice.lab==='Sürpriz yap'||choice.lab==='Sen seç'){
+          const pool=st.opts.filter(o=>o.lab!=='Sürpriz yap'&&o.lab!=='Sen seç');
+          choice=pool[Math.floor(Math.random()*pool.length)];
+        }
+        picks[st.key]=choice;
+        el.classList.add('picked');
+        burst(18);
+        if(reactions[choice.lab]) showToast(reactions[choice.lab]);
+        setTimeout(()=>{
+          stepIndex++;
+          if(stepIndex<steps.length) renderStep(); else showCard();
+        },3000);
+      });
+    });
+  }
+
+  function buildClosing(){
+    const r=picks.reward.lab.toLowerCase();
+    let line=`Plan belli: ${picks.food.lab.toLowerCase()}, ${picks.time.lab.toLowerCase()}, sadece ikimiz — yılın en güzel planı. `;
+    if(r.includes('öpücük')) line+="Ve o iyi geceler öpücüğü? Ona güveniyorum 😏";
+    else if(r.includes('ikinci')) line+="Bana çoktan ikinci bir date sözü verdin — dikkat et, sözünü tutturacağım 💕";
+    else if(r.includes('yap')) line+="Bir dahakine sen yemek yapıyorsun — anlaştık 👩‍🍳";
+    else line+="İstediğin kadar beklet — sen buna değersin 🙈";
+    return line+" Hadi bir gün belirle de cesaretim kaçmadan. 💌";
+  }
+
+  function showCard(){
+    burst(90);
+    inner.innerHTML=`
+      <div class="bighearts" style="font-size:2.4rem">💌</div>
+      <div class="card">
+        <div class="stamp">💋 RESMEN BİR DATE</div>
+        <div class="title">Date Planımız</div>
+        <div class="for">${GF_NAME} tarafından hazırlandı 💕</div>
+        <div class="row"><div class="ic">${picks.place.ic}</div><div class="meta"><b>Nerede</b><span>${picks.place.lab}</span></div></div>
+        <div class="row"><div class="ic">${picks.food.ic}</div><div class="meta"><b>Yemek</b><span>${picks.food.lab}</span></div></div>
+        <div class="row"><div class="ic">${picks.time.ic}</div><div class="meta"><b>Ne zaman</b><span>${picks.time.lab}</span></div></div>
+        <div class="row"><div class="ic">${picks.reward.ic}</div><div class="meta"><b>Ödül</b><span>${picks.reward.lab}</span></div></div>
+        <div class="closing">${buildClosing()}</div>
+      </div>
+      <p class="tip">📸 Ekran görüntüsü al ve bana gönder!</p>
+      <button class="restart" id="restartBtn">baştan başla</button>`;
+    document.getElementById('restartBtn').addEventListener('click',()=>{ stepIndex=0; renderStep(); });
+  }
+
+  yesBtn.addEventListener('click',()=>{
+    document.getElementById('stage').style.display='none';
+    panel.classList.add('show'); showCelebration();
+  });
+
+  function burst(n){
+    const emojis=['💖','🎉','💕','✨','🥰','💗','🌷','💞'];
+    for(let i=0;i<n;i++){ const c=document.createElement('div'); c.className='confetti';
+      c.textContent=emojis[Math.floor(Math.random()*emojis.length)];
+      c.style.left=Math.random()*100+'vw'; c.style.fontSize=(16+Math.random()*22)+'px';
+      c.style.animationDuration=(2.2+Math.random()*2.5)+'s'; c.style.animationDelay=(Math.random()*0.5)+'s';
+      document.body.appendChild(c); setTimeout(()=>c.remove(),6000); }
+  }
+</script>
+</body>
+</html>
